@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Converter</title>
+    <link th:rel="stylesheet" th:href="@{webjars/bootstrap/4.0.0-2/css/bootstrap.min.css} "/>
+    <script src="webjars/jquery/3.5.1/jquery.min.js"></script>
+    <!--    <script src="/static/js/ajaxUpdateHistoryTable.js"></script>-->
+</head>
+
+<script type="application/javascript">
+    function calc() {
+        const historyDto = {
+            currencyFrom: $("#selectCalcCurrencyFrom").val(),
+            currencyTo: $("#selectCalcCurrencyTo").val(),
+            originalAmount: $("#textCalcOriginalAmount").val()
+        };
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/calculate",
+            data: JSON.stringify(historyDto),
+            dataType: 'json',
+            success: function (result) {
+                $('#textCalcReceivedAmount').val(result['receivedAmount']);
+                reload();
+            },
+            error: function (e) {
+                alert("Error!")
+                console.log("ERROR: ", e);
+            }
+        });
+
+    }
+
+    function refreshHistoryTable() {
+        const historyDto = {
+            currencyFrom: $("#selectSearchCurrencyFrom").val(),
+            currencyTo: $("#selectSearchCurrencyTo").val(),
+            date: $("#dateSearch").val()
+        };
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/search",
+            data: JSON.stringify(historyDto),
+            dataType: 'json',
+            success: function (result) {
+                const historyBody = document.querySelector("#myTable > tbody");
+                while (historyBody.firstChild) {
+                    historyBody.removeChild(historyBody.firstChild);
+                }
+                for (var k in result) {
+                    const tr = document.createElement("tr");
+
+                    let td = document.createElement("td");
+                    td.textContent = result[k]['currencyFrom']['name'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['currencyTo']['name'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['originalAmount'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['receivedAmount'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['date'];
+                    tr.appendChild(td);
+
+                    historyBody.appendChild(tr);
+                }
+            },
+            error: function (e) {
+                alert("Error!")
+                console.log("ERROR: ", e);
+            }
+        });
+    }
+
+    function reload() {
+        $.ajax({
+            type: "GET",
+            url: "/reload",
+            dataType: 'json',
+            success: function (result) {
+                const historyBody = document.querySelector("#myTable > tbody");
+                while (historyBody.firstChild) {
+                    historyBody.removeChild(historyBody.firstChild);
+                }
+                for (var k in result) {
+                    const tr = document.createElement("tr");
+
+                    let td = document.createElement("td");
+                    td.textContent = result[k]['currencyFrom']['name'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['currencyTo']['name'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['originalAmount'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['receivedAmount'];
+                    tr.appendChild(td);
+
+                    td = document.createElement("td");
+                    td.textContent = result[k]['date'];
+                    tr.appendChild(td);
+
+                    historyBody.appendChild(tr);
+                }
+            },
+            error: function (e) {
+                alert("Error!")
+                console.log("ERROR: ", e);
+            }
+        });
+    }
+</script>
+
+<body>
+
+<div class="container" style="margin-top: 6%;">
+    <div class="row align-items-center">
+        <div class="col-md-12">
+            <h2 class="h2-responsive text-center">Конвертер</h2>
+        </div>
+    </div>
+
+    <!--    БЛОК КОНВЕРТАЦИИ -->
+    <form id="convertationForm" th:object="${history}">
+        <div class="d-flex align-items-start mb-2" style="height: 100px;">
+            <div class="col align-self-center">
+                <select id="selectCalcCurrencyFrom" class="form-control" name="currencyFrom">
+                    <option th:each="currency: ${currencies}"
+                            th:value="${currency.getId()}"
+                            th:text="${currency.getName()}"/>
+                </select>
+            </div>
+
+            <div class="col align-self-center">
+                <select id="selectCalcCurrencyTo" class="form-control" name="currencyTo">
+                    <option th:each="currency: ${currencies}"
+                            th:value="${currency.getId()}"
+                            th:text="${currency.getName()}"/>
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-start mb-2" style="height: 100px;">
+            <div class="col">
+                <input type="text" class="form-control" th:field="*{originalAmount}" id="textCalcOriginalAmount">
+            </div>
+            <div class="col">
+                <input readonly="true" type="text" th:field="*{originalAmount}" class="form-control"
+                       id="textCalcReceivedAmount">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <input id="calcBtn" type="button" class="btn btn-primary align-self-center" value="Конвертировать"
+                       onclick="calc()">
+            </div>
+        </div>
+    </form>
+
+
+    <!--    ЭЛЕМЕНТЫ ДЛЯ ПОИСКА-->
+    <form th:object="${history}">
+
+        <div class="row" style="margin-top: 5%">
+            <div class="col text-center">
+                <h4 class="h4-responsive text-center">Поиск</h4>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-start mb-3" style="height: 100px;">
+            <div class="col align-self-center">
+                <input id="dateSearch" class="form-control" type="date" th:field="*{date}" placeholder="date"/>
+            </div>
+            <div class="col align-self-center">
+                <select id="selectSearchCurrencyFrom" class="form-control" name="currencyFrom">
+                    <option th:each="currency: ${currencies}"
+                            th:value="${currency.getId()}"
+                            th:text="${currency.getName()}"/>
+                </select>
+            </div>
+            <div class="col align-self-center">
+                <select id="selectSearchCurrencyTo" class="form-control" name="currencyTo">
+                    <option th:each="currency: ${currencies}"
+                            th:value="${currency.getId()}"
+                            th:text="${currency.getName()}"/>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col text-center">
+                <input id="searchBtn" type="button" class="btn btn-primary align-self-center" value="Поиск"
+                       onclick="refreshHistoryTable()">
+            </div>
+        </div>
+
+    </form>
+
+    <!--    ТАБЛИЦА-->
+    <div class="row align-items-center" style="margin-top: 5%">
+        <div class="col-md-12">
+            <div class="table table-responsive-md">
+                <table id="myTable" class="table">
+                    <thead>
+                    <tr>
+                        <th>Исходная валюта</th>
+                        <th>Целевая валюта</th>
+                        <th>Исходная сумма</th>
+                        <th>Получаемая сумма</th>
+                        <th>Дата</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="history : ${histories}">
+                        <td><span th:text="${history.getCurrencyFrom().getName()}"></span></td>
+                        <td><span th:text="${history.getCurrencyTo().getName()}"></span></td>
+                        <td><span th:text="${history.getOriginalAmount()}"></span></td>
+                        <td><span th:text="${history.getReceivedAmount()}"></span></td>
+                        <td><span th:text="${history.getDate()}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
