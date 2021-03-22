@@ -8,7 +8,7 @@
 4. PostgresSQL 13.
 5. Hibernate.
 6. Thymeleaf.
-7. jQuery (AJAX)
+7. jQuery (AJAX).
 
 
 

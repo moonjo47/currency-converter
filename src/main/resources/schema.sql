@@ -1,10 +1,3 @@
--- SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'converter';
--- CREATE USER geek IDENTIFIED BY 'geek';
--- GRANT ALL PRIVILEGES ON * TO postgres;
-
--- DROP DATABASE IF EXISTS converter;
--- CREATE DATABASE converter;
-
 DROP SCHEMA IF EXISTS converter_schema CASCADE;
 CREATE SCHEMA converter_schema;
 
